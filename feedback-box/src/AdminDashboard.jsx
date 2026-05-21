@@ -18,14 +18,12 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchFeedback()
-
     const channel = supabase
       .channel('realtime-feedback')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, () => {
         fetchFeedback()
       })
       .subscribe()
-
     return () => supabase.removeChannel(channel)
   }, [])
 
@@ -55,141 +53,274 @@ export default function AdminDashboard() {
     return categoryMatch && statusMatch
   })
 
+  const reviewed = feedback.filter(f => f.is_reviewed).length
+  const pending = feedback.filter(f => !f.is_reviewed).length
+
   return (
-    <div style={styles.pageContext} className="animate-fade-in">
-      {/* Top Application Bar */}
-      <div style={styles.topBar}>
-        <div>
-          <h1 style={styles.panelTitle}>Operations Dashboard</h1>
-          <p style={styles.panelSubtitle}>Real-time systemic ingestion logs and review moderation utilities.</p>
-        </div>
-        <button onClick={handleSignOut} style={styles.logoutControl}>Terminate Session</button>
-      </div>
+    <div style={styles.page}>
+      <div style={styles.orb1} />
+      <div style={styles.orb2} />
 
-      {/* Analytics Micro Grid */}
-      <div style={styles.metricsGrid}>
-        <div className="dashboard-card" style={styles.metaBox}>
-          <span style={styles.metaLabel}>Inbound Stream</span>
-          <strong style={{ ...styles.metaCount, color: '#0f172a' }}>{feedback.length}</strong>
+      <div style={styles.inner}>
+        {/* Header */}
+        <div style={styles.header}>
+          <div>
+            <h1 style={styles.title}>🛡️ Admin Dashboard</h1>
+            <p style={styles.titleSub}>Real-time feedback management</p>
+          </div>
+          <button onClick={handleSignOut} style={styles.signOutBtn}>Sign Out</button>
         </div>
-        <div className="dashboard-card" style={styles.metaBox}>
-          <span style={styles.metaLabel}>Processed Logs</span>
-          <strong style={{ ...styles.metaCount, color: '#10b981' }}>{feedback.filter(f => f.is_reviewed).length}</strong>
-        </div>
-        <div className="dashboard-card" style={styles.metaBox}>
-          <span style={styles.metaLabel}>Outstanding Action</span>
-          <strong style={{ ...styles.metaCount, color: '#f59e0b' }}>{feedback.filter(f => !f.is_reviewed).length}</strong>
-        </div>
-      </div>
 
-      {/* Layout Grid Filters */}
-      <div style={styles.controlBar}>
-        <div style={styles.splitFilter}>
-          <label style={styles.controlLabel}>Scope Taxonomy</label>
-          <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="premium-input" style={styles.dropdownCustom}>
+        {/* Stats */}
+        <div style={styles.statsRow}>
+          <div style={{ ...styles.statBox, background: 'linear-gradient(135deg, rgba(99,102,241,0.35), rgba(139,92,246,0.2))', borderColor: 'rgba(99,102,241,0.3)' }}>
+            <span style={styles.statLabel}>Total</span>
+            <strong style={{ ...styles.statNum, color: '#c4b5fd' }}>{feedback.length}</strong>
+          </div>
+          <div style={{ ...styles.statBox, background: 'linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.18))', borderColor: 'rgba(16,185,129,0.3)' }}>
+            <span style={styles.statLabel}>Reviewed</span>
+            <strong style={{ ...styles.statNum, color: '#6ee7b7' }}>{reviewed}</strong>
+          </div>
+          <div style={{ ...styles.statBox, background: 'linear-gradient(135deg, rgba(245,158,11,0.3), rgba(217,119,6,0.18))', borderColor: 'rgba(245,158,11,0.3)' }}>
+            <span style={styles.statLabel}>Pending</span>
+            <strong style={{ ...styles.statNum, color: '#fcd34d' }}>{pending}</strong>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div style={styles.filters}>
+          <select
+            value={categoryFilter}
+            onChange={e => setCategoryFilter(e.target.value)}
+            style={styles.select}
+          >
             {categories.map(c => <option key={c}>{c}</option>)}
           </select>
-        </div>
-        <div style={styles.splitFilter}>
-          <label style={styles.controlLabel}>Log Status</label>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="premium-input" style={styles.dropdownCustom}>
-            <option value="all">All Indexed Logs</option>
-            <option value="pending">Pending Review Only</option>
-            <option value="reviewed">Archived / Reviewed</option>
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            style={styles.select}
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="reviewed">Reviewed</option>
           </select>
         </div>
-      </div>
 
-      {/* Operational Content Field */}
-      {loading ? (
-        <div style={styles.statusBox}>
-          <div style={styles.loadingSpinner} />
-          <p style={{ color: '#64748b', fontSize: '14px', fontWeight: '500' }}>Synchronizing platform data schema...</p>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div style={styles.statusBox}>
-          <p style={{ color: '#94a3b8', fontSize: '14px' }}>No entries found within current filtration matrix.</p>
-        </div>
-      ) : (
-        <div style={styles.feedWrapper}>
-          {filtered.map(f => (
-            <div 
-              key={f.id} 
-              className="dashboard-card-interactive"
-              style={{ 
-                ...styles.logCard, 
-                borderLeft: f.is_reviewed ? '4px solid #10b981' : '4px solid #f59e0b' 
+        {/* Feedback List */}
+        {loading ? (
+          <p style={styles.emptyMsg}>Loading feedback…</p>
+        ) : filtered.length === 0 ? (
+          <p style={styles.emptyMsg}>No feedback found.</p>
+        ) : (
+          filtered.map(f => (
+            <div
+              key={f.id}
+              style={{
+                ...styles.card,
+                borderLeftColor: f.is_reviewed ? 'rgba(16,185,129,0.7)' : 'rgba(245,158,11,0.7)',
               }}
             >
-              <div style={styles.logCardHeader}>
-                <span style={{
-                  ...styles.taxBadge,
-                  background: f.is_reviewed ? '#f0fdf4' : '#fffbeb',
-                  color: f.is_reviewed ? '#15803d' : '#b45309',
-                  border: f.is_reviewed ? '1px solid #bbf7d0' : '1px solid #fde68a'
-                }}>{f.category}</span>
-                <span style={styles.timestampLabel}>{new Date(f.created_at).toLocaleString()}</span>
+              <div style={styles.cardHeader}>
+                <span style={styles.catBadge}>{f.category}</span>
+                <span style={styles.timeLabel}>{new Date(f.created_at).toLocaleString()}</span>
               </div>
-              
-              <p style={styles.logMessage}>{f.message}</p>
-              
-              <div style={styles.logCardFooter}>
-                <div style={styles.stateIdentifier}>
-                  <span style={{ ...styles.stateIndicatorDot, backgroundColor: f.is_reviewed ? '#10b981' : '#f59e0b' }} />
-                  <span style={{ color: f.is_reviewed ? '#15803d' : '#b45309', fontWeight: '600', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                    {f.is_reviewed ? 'Reviewed' : 'Awaiting Action'}
-                  </span>
-                </div>
-                
+              <p style={styles.message}>{f.message}</p>
+              <div style={styles.cardFooter}>
+                <span style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: f.is_reviewed ? '#6ee7b7' : '#fcd34d',
+                }}>
+                  {f.is_reviewed ? '✅ Reviewed' : '🕐 Pending'}
+                </span>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button 
-                    onClick={() => toggleReviewed(f)} 
-                    style={{
-                      ...styles.actionToggle,
-                      background: f.is_reviewed ? '#f1f5f9' : '#e0e7ff',
-                      color: f.is_reviewed ? '#475569' : '#4338ca'
-                    }}
-                  >
-                    {f.is_reviewed ? 'Reopen Entry' : 'Resolve'}
+                  <button onClick={() => toggleReviewed(f)} style={styles.toggleBtn}>
+                    {f.is_reviewed ? 'Unmark' : 'Mark Reviewed'}
                   </button>
-                  <button onClick={() => deleteFeedback(f.id)} style={styles.actionPurge}>
-                    Purge
+                  <button onClick={() => deleteFeedback(f.id)} style={styles.deleteBtn}>
+                    Delete
                   </button>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   )
 }
 
 const styles = {
-  pageContext: { maxWidth: '900px', margin: '0 auto', padding: '40px 24px 80px 24px' },
-  topBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid #e2e8f0', paddingBottom: '24px' },
-  panelTitle: { fontSize: '26px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.025em' },
-  panelSubtitle: { fontSize: '14px', color: '#64748b', marginTop: '4px' },
-  logoutControl: { padding: '8px 14px', background: '#ffffff', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '500', transition: 'all 0.2s' },
-  metricsGrid: { display: 'flex', gap: '16px', marginBottom: '32px' },
-  metaBox: { flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', padding: '20px' },
-  metaLabel: { fontSize: '11px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  metaCount: { fontSize: '28px', fontWeight: '700' },
-  controlBar: { display: 'flex', gap: '16px', marginBottom: '24px', background: '#f1f5f9', padding: '16px', borderRadius: '12px' },
-  splitFilter: { flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' },
-  controlLabel: { fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' },
-  dropdownCustom: { padding: '8px 12px', fontSize: '13px', background: '#ffffff', cursor: 'pointer' },
-  feedWrapper: { display: 'flex', flexDirection: 'column', gap: '16px' },
-  logCard: { padding: '20px 24px' },
-  logCardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
-  taxBadge: { padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.03em' },
-  timestampLabel: { fontSize: '12px', color: '#94a3b8' },
-  logMessage: { margin: '0 0 20px 0', fontSize: '15px', color: '#334155', lineHeight: '1.6' },
-  logCardFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid #f1f5f9' },
-  stateIdentifier: { display: 'flex', alignItems: 'center', gap: '8px' },
-  stateIndicatorDot: { width: '6px', height: '6px', borderRadius: '50%' },
-  actionToggle: { padding: '8px 14px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', transition: 'all 0.2s' },
-  actionPurge: { padding: '8px 14px', background: '#fff1f1', color: '#c53030', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', transition: 'all 0.2s' },
-  statusBox: { textAlign: 'center', padding: '80px 24px', background: '#ffffff', borderRadius: '12px', border: '1px dashed #cbd5e1' },
-  loadingSpinner: { width: '28px', height: '28px', border: '3px solid #e2e8f0', borderTopColor: 'var(--primary)', borderRadius: '50%', margin: '0 auto 16px auto', cubicBezier: '(0.4, 0, 0.2, 1)', animation: 'spin 0.8s linear infinite' }
+  page: {
+    minHeight: '100vh',
+    background: 'linear-gradient(160deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+    padding: '2rem 1rem',
+    fontFamily: "'Segoe UI', system-ui, sans-serif",
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  orb1: {
+    position: 'fixed',
+    width: '500px',
+    height: '500px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
+    top: '-100px',
+    right: '-100px',
+    pointerEvents: 'none',
+  },
+  orb2: {
+    position: 'fixed',
+    width: '400px',
+    height: '400px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%)',
+    bottom: '-80px',
+    left: '-80px',
+    pointerEvents: 'none',
+  },
+  inner: {
+    position: 'relative',
+    zIndex: 1,
+    maxWidth: '780px',
+    margin: '0 auto',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '1.75rem',
+  },
+  title: {
+    fontSize: '22px',
+    fontWeight: '600',
+    color: '#fff',
+    margin: '0 0 4px',
+  },
+  titleSub: {
+    fontSize: '13px',
+    color: 'rgba(255,255,255,0.4)',
+    margin: 0,
+  },
+  signOutBtn: {
+    padding: '8px 18px',
+    borderRadius: '10px',
+    border: '1px solid rgba(239,68,68,0.4)',
+    background: 'rgba(239,68,68,0.14)',
+    color: '#fca5a5',
+    fontSize: '13px',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    transition: 'background 0.15s',
+  },
+  statsRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '12px',
+    marginBottom: '1.5rem',
+  },
+  statBox: {
+    borderRadius: '16px',
+    padding: '16px',
+    textAlign: 'center',
+    border: '1px solid transparent',
+  },
+  statLabel: {
+    display: 'block',
+    fontSize: '12px',
+    color: 'rgba(255,255,255,0.55)',
+    marginBottom: '4px',
+  },
+  statNum: {
+    display: 'block',
+    fontSize: '28px',
+    fontWeight: '600',
+  },
+  filters: {
+    display: 'flex',
+    gap: '10px',
+    marginBottom: '1.5rem',
+  },
+  select: {
+    flex: 1,
+    padding: '10px 14px',
+    borderRadius: '10px',
+    border: '1px solid rgba(255,255,255,0.15)',
+    background: 'rgba(255,255,255,0.08)',
+    color: '#fff',
+    fontSize: '14px',
+    fontFamily: 'inherit',
+    outline: 'none',
+    cursor: 'pointer',
+  },
+  card: {
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderLeftWidth: '4px',
+    borderRadius: '16px',
+    padding: '16px 18px',
+    marginBottom: '12px',
+    color: '#e5e7eb',
+    transition: 'background 0.15s',
+  },
+  cardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '8px',
+  },
+  catBadge: {
+    padding: '3px 10px',
+    borderRadius: '20px',
+    fontSize: '11px',
+    fontWeight: '600',
+    background: 'rgba(139,92,246,0.28)',
+    color: '#c4b5fd',
+    border: '1px solid rgba(139,92,246,0.4)',
+    letterSpacing: '0.3px',
+  },
+  timeLabel: {
+    fontSize: '11px',
+    color: 'rgba(255,255,255,0.35)',
+  },
+  message: {
+    fontSize: '14px',
+    color: '#d1d5db',
+    margin: '6px 0 12px',
+    lineHeight: '1.6',
+  },
+  cardFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  toggleBtn: {
+    padding: '6px 14px',
+    borderRadius: '8px',
+    border: '1px solid rgba(99,102,241,0.45)',
+    background: 'rgba(99,102,241,0.18)',
+    color: '#a5b4fc',
+    fontSize: '12px',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    transition: 'background 0.15s',
+  },
+  deleteBtn: {
+    padding: '6px 14px',
+    borderRadius: '8px',
+    border: '1px solid rgba(239,68,68,0.35)',
+    background: 'rgba(239,68,68,0.12)',
+    color: '#fca5a5',
+    fontSize: '12px',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    transition: 'background 0.15s',
+  },
+  emptyMsg: {
+    textAlign: 'center',
+    color: 'rgba(255,255,255,0.35)',
+    padding: '3rem',
+    fontSize: '14px',
+  },
 }

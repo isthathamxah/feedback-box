@@ -23,59 +23,57 @@ export default function FeedbackForm({ onAdminClick }) {
   }
 
   return (
-    <div style={styles.viewWrapper}>
-      <div className="animate-fade-in" style={styles.formContainer}>
-        <div style={styles.headerZone}>
-          <h1 style={styles.appTitle}>Submit Feedback</h1>
-          <p style={styles.appSubtitle}>Your thoughts go directly to our team. Completely encrypted and anonymous.</p>
+    <div style={styles.page}>
+      <div style={styles.orb1} />
+      <div style={styles.orb2} />
+      <div style={styles.card}>
+        <div style={styles.iconWrap}>
+          <span style={{ fontSize: '28px' }}>📬</span>
         </div>
+        <h1 style={styles.title}>Anonymous Feedback</h1>
+        <p style={styles.subtitle}>Share your thoughts freely — no account needed.</p>
 
         {submitted && (
-          <div className="success-banner" style={{ marginBottom: '24px' }}>
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            Feedback dispatched securely.
+          <div style={styles.successBox}>
+            ✅ Feedback submitted successfully!
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={styles.formElement}>
-          <div style={styles.fieldBlock}>
-            <label style={styles.fieldLabel}>Category</label>
-            <select
-              value={category}
-              onChange={e => setCategory(e.target.value)}
-              className="premium-input"
-              style={{ cursor: 'pointer' }}
-            >
-              <option>General</option>
-              <option>Bug</option>
-              <option>Suggestion</option>
-              <option>Complaint</option>
-              <option>Other</option>
-            </select>
-          </div>
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <label style={styles.label}>Category</label>
+          <select
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            style={styles.input}
+          >
+            <option>General</option>
+            <option>Bug</option>
+            <option>Suggestion</option>
+            <option>Complaint</option>
+            <option>Other</option>
+          </select>
 
-          <div style={styles.fieldBlock}>
-            <label style={styles.fieldLabel}>Message Content</label>
-            <textarea
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              required
-              placeholder="Provide clear details regarding your experience or issue..."
-              rows={5}
-              className="premium-input"
-              style={{ resize: 'vertical', fontFamily: 'inherit', lineHeight: '1.6' }}
-            />
-          </div>
+          <label style={styles.label}>Your Feedback</label>
+          <textarea
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            required
+            placeholder="Write your feedback here..."
+            rows={5}
+            style={{ ...styles.input, resize: 'vertical' }}
+          />
 
-          <button type="submit" disabled={loading} className="btn-primary" style={{ marginTop: '4px' }}>
-            {loading ? 'Processing Submission...' : 'Send Anonymously'}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ ...styles.submitBtn, opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? 'Submitting…' : 'Submit Feedback'}
           </button>
         </form>
 
-        <button onClick={onAdminClick} style={styles.portalToggleBtn}>
-          Authorized Administrator Access
+        <button onClick={onAdminClick} style={styles.adminLink}>
+          Admin Login
         </button>
       </div>
     </div>
@@ -83,64 +81,132 @@ export default function FeedbackForm({ onAdminClick }) {
 }
 
 const styles = {
-  viewWrapper: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+  page: {
     minHeight: '100vh',
-    padding: '24px'
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 45%, #f093fb 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '2rem 1rem',
+    fontFamily: "'Segoe UI', system-ui, sans-serif",
+    position: 'relative',
+    overflow: 'hidden',
   },
-  formContainer: {
-    maxWidth: '460px',
+  orb1: {
+    position: 'absolute',
+    width: '400px',
+    height: '400px',
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.08)',
+    top: '-100px',
+    right: '-100px',
+    pointerEvents: 'none',
+  },
+  orb2: {
+    position: 'absolute',
+    width: '300px',
+    height: '300px',
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.06)',
+    bottom: '-80px',
+    left: '-80px',
+    pointerEvents: 'none',
+  },
+  card: {
+    position: 'relative',
+    zIndex: 1,
     width: '100%',
-    background: '#ffffff',
+    maxWidth: '480px',
+    background: 'rgba(255,255,255,0.14)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255,255,255,0.3)',
+    borderRadius: '24px',
+    padding: '2.5rem 2rem',
+    boxShadow: '0 8px 40px rgba(0,0,0,0.25)',
+    color: '#fff',
+  },
+  iconWrap: {
+    width: '56px',
+    height: '56px',
     borderRadius: '16px',
-    padding: '40px',
-    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.02)',
-    border: '1px solid #e2e8f0'
-  },
-  headerZone: {
-    textAlign: 'center',
-    marginBottom: '32px'
-  },
-  appTitle: {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: '#0f172a',
-    letterSpacing: '-0.02em',
-    marginBottom: '8px'
-  },
-  appSubtitle: {
-    fontSize: '14px',
-    color: '#64748b',
-    lineHeight: '1.5'
-  },
-  formElement: {
+    background: 'rgba(255,255,255,0.2)',
     display: 'flex',
-    flexDirection: 'column',
-    gap: '20px'
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '1rem',
   },
-  fieldBlock: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px'
-  },
-  fieldLabel: {
-    fontSize: '13px',
+  title: {
+    fontSize: '26px',
     fontWeight: '600',
-    color: '#334155'
+    margin: '0 0 6px',
+    letterSpacing: '-0.3px',
   },
-  portalToggleBtn: {
-    marginTop: '32px',
+  subtitle: {
+    fontSize: '14px',
+    color: 'rgba(255,255,255,0.72)',
+    marginBottom: '1.75rem',
+  },
+  successBox: {
+    background: 'rgba(52,211,153,0.22)',
+    border: '1px solid rgba(52,211,153,0.45)',
+    color: '#6ee7b7',
+    padding: '11px 14px',
+    borderRadius: '12px',
+    fontSize: '14px',
+    marginBottom: '1rem',
+    textAlign: 'center',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  label: {
+    fontSize: '13px',
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.85)',
+    marginBottom: '5px',
+    marginTop: '10px',
+    display: 'block',
+  },
+  input: {
+    padding: '11px 14px',
+    borderRadius: '12px',
+    border: '1px solid rgba(255,255,255,0.3)',
+    background: 'rgba(255,255,255,0.15)',
+    color: '#fff',
+    fontSize: '14px',
+    width: '100%',
+    boxSizing: 'border-box',
+    outline: 'none',
+    fontFamily: 'inherit',
+    transition: 'border 0.2s, background 0.2s',
+  },
+  submitBtn: {
+    marginTop: '18px',
+    padding: '13px',
+    borderRadius: '12px',
+    border: 'none',
+    background: 'linear-gradient(135deg, #fff 0%, #e0d7ff 100%)',
+    color: '#5b21b6',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'opacity 0.15s, transform 0.1s',
+    fontFamily: 'inherit',
+  },
+  adminLink: {
+    marginTop: '18px',
     background: 'none',
     border: 'none',
-    color: '#94a3b8',
+    color: 'rgba(255,255,255,0.45)',
     fontSize: '12px',
-    fontWeight: '500',
     cursor: 'pointer',
     display: 'block',
     width: '100%',
     textAlign: 'center',
-    transition: 'color 0.2s ease',
-  }
+    fontFamily: 'inherit',
+    transition: 'color 0.15s',
+  },
 }
